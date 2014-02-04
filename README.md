@@ -8,10 +8,10 @@ Bash shell script to simplyfy resymbolication of chunk of iOS crash log files. T
 Script take as parameter: <br />
 <lu>
 	
-	<li>-h prints help </li>
-	<li>-? prints help </li>
-	<li>-d [PATH_TO_DIR_WITH_CRASH_FILES] </li>
-	<li>-v verbose mode </li>
+	-h prints help
+	-? prints help
+	-d [PATH_TO_DIR_WITH_CRASH_FILES]
+	-v verbose mode
 <lu>
 	
 <p>
