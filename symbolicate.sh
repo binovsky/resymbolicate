@@ -28,34 +28,39 @@ function SymbolicateRoutine
 	crash_path=()
 	
 	if [ -d "$path" ] ; then
-		for app in $(find "$path" -name "*.app" -mindepth 1 -maxdepth 1 -type d) ; do
 		
-		if [ $verbose -eq 1 ] ; then
-		    echo ">>>> $app"
-		fi
+		# app
+		while IFS= read -r -d '' app; do
 		
-			app_path[$app_found]=$app
-			((app_found++))
-		done
+			if [ $verbose -eq 1 ] ; then
+			    echo ">>>> $app"
+			fi
 		
-		for dSYM in $(find "$path" -name "*.dSYM" -mindepth 1 -maxdepth 1 -type d) ; do
-		
-		if [ $verbose -eq 1 ] ; then
-			echo ">>>> $dSYM"
-		fi
+			app_path[app_found++]=$app
 			
-			dSYM_path[dSYM_found]=$dSYM
-			((dSYM_found++))
-		done
+		done < <(find "$path" -name "*.app" -mindepth 1 -maxdepth 1 -type d -print0)
 		
-		for crash_log in $(find "$path" -name "*.crash" -mindepth 1 -maxdepth 1 -type f) ; do
+		# dSYM
+		while IFS= read -r -d '' dSYM; do
 		
-		if [ $verbose -eq 1 ] ; then
-			echo ">>>> $crash_log"
-		fi
-			crash_path[$crash_found]=$crash_log
-			((crash_found++))
-		done
+			if [ $verbose -eq 1 ] ; then
+				echo ">>>> $dSYM"
+			fi
+			
+			dSYM_path[dSYM_found++]=$dSYM
+		
+		done < <(find "$path" -name "*.dSYM" -mindepth 1 -maxdepth 1 -type d -print0)
+
+		# crash
+		while IFS= read -r -d '' crash_log; do
+		
+			if [ $verbose -eq 1 ] ; then
+				echo ">>>> $crash_log"
+			fi
+			
+		    crash_path[crash_found++]="$crash_log"
+		
+		done < <(find "$path" -type f -name "*.crash" -mindepth 1 -maxdepth 1 -print0)
 		
 		if [ $app_found -lt 1 ] ; then
 			echo "Error, .app package not found in source directory '$path'"
@@ -74,16 +79,17 @@ function SymbolicateRoutine
 		xcode_symbolication_script_path=$(find "/Applications/Xcode.app" -name symbolicatecrash -type f)
 		resymbolicated="resymbolicated_"
 		crash=".crash"
-		for crash_p in ${crash_path[*]} ; do
+		
+		for ((i = 0; i < "${#crash_path[@]}"; i++)) do
+	
 			resymb_path=$path$resymbolicated$i$crash
 			
 			if [ $verbose -eq 1 ] ; then
-				"$xcode_symbolication_script_path" -v -o $resymb_path $crash_p $dSYM_path
-				echo "## RUNNING COMMAND ## $xcode_symbolication_script_path -o $resymb_path $crash_p $dSYM_path"
+				"${xcode_symbolication_script_path}" -v -o "${resymb_path}" "${crash_path[$i]}" "${dSYM_path}"
+				echo "## RUNNING COMMAND ## $xcode_symbolication_script_path -o \"${crash_path[$i]}\" \"$crash_p\" \"$dSYM_path\""
 			else	
-				"$xcode_symbolication_script_path" -o $resymb_path $crash_p $dSYM_path
+				"$xcode_symbolication_script_path" -o "${resymb_path}" "${crash_path[$i]}" "${dSYM_path}"
 			fi
-			((i++))
 		done
 	else
 		echo "'$path' is not a directory"
@@ -123,4 +129,3 @@ while getopts "h?vd:" opt; do
 done
 
 SymbolicateRoutine $verbose "$dir_path"
-
