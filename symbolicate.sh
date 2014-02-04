@@ -29,19 +29,30 @@ function SymbolicateRoutine
 	
 	if [ -d "$path" ] ; then
 		for app in $(find "$path" -name "*.app" -mindepth 1 -maxdepth 1 -type d) ; do
-		    #echo $app
+		
+		if [ $verbose -eq 1 ] ; then
+		    echo ">>>> $app"
+		fi
+		
 			app_path[$app_found]=$app
 			((app_found++))
 		done
 		
 		for dSYM in $(find "$path" -name "*.dSYM" -mindepth 1 -maxdepth 1 -type d) ; do
-			#echo $dSYM
-			dSYM_path[dSYM_found]=$dSYN
+		
+		if [ $verbose -eq 1 ] ; then
+			echo ">>>> $dSYM"
+		fi
+			
+			dSYM_path[dSYM_found]=$dSYM
 			((dSYM_found++))
 		done
 		
 		for crash_log in $(find "$path" -name "*.crash" -mindepth 1 -maxdepth 1 -type f) ; do
-			#echo $crash_log
+		
+		if [ $verbose -eq 1 ] ; then
+			echo ">>>> $crash_log"
+		fi
 			crash_path[$crash_found]=$crash_log
 			((crash_found++))
 		done
@@ -67,9 +78,10 @@ function SymbolicateRoutine
 			resymb_path=$path$resymbolicated$i$crash
 			
 			if [ $verbose -eq 1 ] ; then
-				"$xcode_symbolication_script_path" -v -o $resymb_path $crash_p $dSYM_path[0] > /dev/null
+				"$xcode_symbolication_script_path" -v -o $resymb_path $crash_p $dSYM_path
+				echo "## RUNNING COMMAND ## $xcode_symbolication_script_path -o $resymb_path $crash_p $dSYM_path"
 			else	
-				"$xcode_symbolication_script_path" -o $resymb_path $crash_p $dSYM_path[0] > /dev/null
+				"$xcode_symbolication_script_path" -o $resymb_path $crash_p $dSYM_path
 			fi
 			((i++))
 		done
@@ -111,3 +123,4 @@ while getopts "h?vd:" opt; do
 done
 
 SymbolicateRoutine $verbose "$dir_path"
+
