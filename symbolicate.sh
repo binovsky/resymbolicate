@@ -17,7 +17,7 @@ function PrintHelp
 function SymbolicateRoutine
 {
 	verbose=$1
-	path="$2"
+	path="${2}"
 	
 	app_found=0
 	dSYM_found=0
@@ -27,7 +27,7 @@ function SymbolicateRoutine
 	dSYM_path=()
 	crash_path=()
 	
-	if [ -d "$path" ] ; then
+	if [ -d "${path}" ] ; then
 		
 		# app
 		while IFS= read -r -d '' app; do
@@ -38,7 +38,7 @@ function SymbolicateRoutine
 		
 			app_path[app_found++]=$app
 			
-		done < <(find "$path" -name "*.app" -mindepth 1 -maxdepth 1 -type d -print0)
+		done < <(find "${path}" -name "*.app" -mindepth 1 -maxdepth 1 -type d -print0)
 		
 		# dSYM
 		while IFS= read -r -d '' dSYM; do
@@ -49,7 +49,7 @@ function SymbolicateRoutine
 			
 			dSYM_path[dSYM_found++]=$dSYM
 		
-		done < <(find "$path" -name "*.dSYM" -mindepth 1 -maxdepth 1 -type d -print0)
+		done < <(find "${path}" -name "*.dSYM" -mindepth 1 -maxdepth 1 -type d -print0)
 
 		# crash
 		while IFS= read -r -d '' crash_log; do
@@ -60,16 +60,16 @@ function SymbolicateRoutine
 			
 		    crash_path[crash_found++]="$crash_log"
 		
-		done < <(find "$path" -type f -name "*.crash" -mindepth 1 -maxdepth 1 -print0)
+		done < <(find "${path}" -type f -name "*.crash" -mindepth 1 -maxdepth 1 -print0)
 		
 		if [ $app_found -lt 1 ] ; then
-			echo "Error, .app package not found in source directory '$path'"
+			echo "Error, .app package not found in source directory '${path}'"
 			exit 0
 		elif [ $dSYM_found -lt 1 ] ; then
-			echo "Error, .dSYM package not found in source directory '$path'"
+			echo "Error, .dSYM package not found in source directory '${path}'"
 			exit 0
 		elif [ 	$crash_found -lt 1 ] ; then
-			echo "Error, .crash file not found in source directory '$path'"
+			echo "Error, .crash file not found in source directory '${path}'"
 			exit 0
 		fi
 		
@@ -123,9 +123,9 @@ while getopts "h?vd:" opt; do
 			;;
 		
 		d)
-			dir_path="$OPTARG"
+			dir_path="${OPTARG}"
 			;;
     esac
 done
 
-SymbolicateRoutine $verbose "$dir_path"
+SymbolicateRoutine $verbose "${dir_path}"
